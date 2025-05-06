@@ -4,7 +4,6 @@ import settings
 
 bot = TeleBot(settings.TOKEN)
 
-
 @bot.message_handler(commands=['start'])
 def greet(message):
     print(message)
@@ -16,3 +15,4 @@ def greet(message):
 def help(message):
     print(message)
     bot.send_message(message.chat.id, 'Sorry, i cant help you yet')
+
