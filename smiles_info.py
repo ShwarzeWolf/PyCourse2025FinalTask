@@ -1,56 +1,49 @@
-from rdkit import Chem
-from rdkit.Chem import Descriptors, Draw, Lipinski
 import json
 import base64
 from io import BytesIO
 
-def molecule_properties(smiles: str) -> dict:
-    # Initialize output dictionary
-    output_json = {
+from rdkit import Chem
+from rdkit.Chem import (
+    Descriptors,
+    Draw, 
+    Lipinski,
+)
+
+const MAX_molecular_wight = 500
+const MAX_h_donors = 5
+const MAX_h_acceptors = 10
+
+def get_molecule_properties(smiles: str) -> dict:
+    
+    molecule_properties = {
         "smiles": smiles,
-        "molecular_weight": 0.0,
-        "ring_count": 0,
-        "h_donors": 0,
-        "h_acceptors": 0,
-        "lipinski_compliant": False,
-        "lipinski_rules": {},
-        "icon": ""
+        "molecular_weight": round(Descriptors.MolWt(mol), 2),
+        "ring_count": Lipinski.RingCount(mol),
+        "h_donors": Lipinski.NumHDonors(mol),
+        "h_acceptors": Lipinski.NumHAcceptors(mol),
     }
 
-    try:
-        # Parse SMILES and create molecule
-        mol = Chem.MolFromSmiles(smiles)
-        if mol is None:
-            raise ValueError("Invalid SMILES string")
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError("Invalid SMILES string")
 
-        # Calculate molecular properties
-        output_json["molecular_weight"] = round(Descriptors.MolWt(mol), 2)
-        output_json["ring_count"] = Lipinski.RingCount(mol)
-        output_json["h_donors"] = Lipinski.NumHDonors(mol)
-        output_json["h_acceptors"] = Lipinski.NumHAcceptors(mol)
+    lipinski_rules = {
+        "MolWt < 500": molecule_properties["molecular_weight"] < 500,
+        "NumHDonors <= 5": molecule_properties["h_donors"] <= 5,
+        "NumHAcceptors <= 10": molecule_properties["h_acceptors"] <= 10,
+        "LogP <= 5": Lipinski.MolLogP(mol) <= 5
+    }
+    molecule_properties["Lipinski_rules"] = lipinski_rules
+    molecule_properties["lipinski_compliant"] = all(lipinski_rules.values())
 
-        # Evaluate Lipinski's Rule of Five
-        lipinski_rules = {
-            "MolWt < 500": output_json["molecular_weight"] < 500,
-            "NumHDonors <= 5": output_json["h_donors"] <= 5,
-            "NumHAcceptors <= 10": output_json["h_acceptors"] <= 10,
-            "LogP <= 5": Lipinski.MolLogP(mol) <= 5
-        }
-        output_json["lipinski_rules"] = lipinski_rules
-        output_json["lipinski_compliant"] = all(lipinski_rules.values())
+    img = Draw.MolToImage(mol)
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    molecule_properties["icon"] = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-        # Generate molecule image as base64 string
-        img = Draw.MolToImage(mol)
-        buffered = BytesIO()
-        img.save(buffered, format="PNG")
-        output_json["icon"] = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return molecule_properties
 
-        return output_json
 
-    except Exception as e:
-        return {"error": f"Failed to process SMILES: {str(e)}"}
-
-# Example usage
 if __name__ == "__main__":
     smiles = input("Enter SMILES string: ")
     result = molecule_properties(smiles)
