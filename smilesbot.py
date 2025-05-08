@@ -1,0 +1,31 @@
+import os
+
+from dotenv import load_dotenv
+from telebot import TeleBot
+
+load_dotenv()
+TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
+
+bot = TeleBot(TG_BOT_TOKEN)
+
+
+@bot.message_handler(commands=["start"])
+def greet(message):
+    print(message)
+    bot.send_message(
+        message.chat.id,
+        "Hi, im Dmitriis bot",
+    )
+
+
+@bot.message_handler(commands=["help"])
+def get_help(message):
+    print(message)
+    bot.send_message(
+        message.chat.id,
+        "Sorry, i cant help you yet",
+        # TODO Добавить более точное описание функционала
+    )
+
+
+bot.polling()
