@@ -1,29 +1,39 @@
-import rdkit
 import csv
-from keras.src.ops import append
 from rdkit import Chem
 
+smiles = []
+for row in range(10):
+    smiles.append(row)
+smiles = [
+    row for row in range(10)
+]
+
+
 def read_smiles_from_csv(file_path):
-    smiles_list = []
     with open(file_path, mode='r') as file:
         reader = csv.DictReader(file)
-        for row in reader:
-            smiles_list.append(row['smiles'])
-    return smiles_list
-def substructure_search(substructure, file):
-    benzene = Chem.MolFromSmiles(substructure)
-    Tmol = []
+        smiles = [
+            row['smiles']
+            for row in reader
+        ]
+    return smiles
+
+
+def search_substructure(substructure, file):
+    target_molecule = Chem.MolFromSmiles(substructure)
+    molecules_containing_substructures = []
     all_smiles = read_smiles_from_csv(file)
-    for i in range(len(all_smiles)):
-        smiles = all_smiles[i]
+    for i in all_smiles:
+        smiles = i
         mol = Chem.MolFromSmiles(smiles)
-        match = mol.HasSubstructMatch(benzene)
-        if (match == True):
-            Tmol.append(smiles)
-    return Tmol
+        match = mol.HasSubstructMatch(target_molecule)
+        if match:
+            molecules_containing_substructures.append(smiles)
+    return molecules_containing_substructures
+
 
 if __name__ == "__main__":
     substructure = input("Enter substructure: ")
     file = input("Enter file: ")
-    molecules = substructure_search(substructure, file)
-    print(molecules)
+    molucules_containing_substructures = search_substructure(substructure, file)
+    print(molucules_containing_substructures)
