@@ -1,0 +1,17 @@
+{
+    "send_info_smiles": "Here some information about {message}:\nMolecular wight = {info[\"molecular_weight\"]}\nCount of ring = {info[\"ring_count\"]}\nCount of hydrogen bond donors = {info[\"h_donors\"]}\nCount of hydrogen bond acceptors = {info[\"h_acceptors\"]}\nWhether Lipinski rule = {info[\"lipinski_compliant\"]}\n",
+    "welcome": "Hi, i'm smiles bot.\nI can give you some information about organic compound.\nAlso I can try to find some similar smiles in my library.\nYou can help me. If you want, you can upload some your csv files with to our base",
+
+    "file_correct": "Your file is correct. I will try to parse it. If there are some molecules which were not parsed, I will remove them from the file.",
+    "file_correct_content": "All molecules is correct.",
+
+    "HELP_QUESTION":"What about me you want to know?",
+    "info_about_info_search":"I can give you some information about organic compound:\n\t-Molecular wight\n\t-Count of ring\n\t-Count of hydrogen bond donors\n\t-Count of hydrogen bond acceptors\n\t-Whether Lipinski rule\n\t-picture of organic compound",
+    "info_about_similar_search":"I can try to find similar smiles in my library. Now my database is small, but you can upload some now csv files and we updata our base.",
+    "help_button_info":"Smiles Information, what I can to give you",
+    "help_button_similar": "Find similar smiles",
+
+    "type_error":"Sorry, but you send not csv file. Resend, please",
+    "content_error":"Sorry, but you send incorrect name of columns in your file. We cannot work with it. Resend, please",
+    "no_parsing_error":"There are some molecules which were not parsed:\n{not_valid_molecules_df['molecule name'].to_list()}. Those molecules were removed from the file. Please change the value if you want to have it in the search."
+}
