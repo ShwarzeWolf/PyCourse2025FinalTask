@@ -120,7 +120,7 @@ def get_similar_molecules(message):
 def compare_with_other_mols(message):
     user_smiles = message.text
     # TODO add the choice of library
-    similar = find_similar_mols(user_smiles, "library.csv", threshold=0.7)
+    similar = find_similar_mols(user_smiles, "data/library.csv", threshold=0.7)
 
     if not similar:
         bot.send_message(message.chat.id, "No similar molecules were found.")
