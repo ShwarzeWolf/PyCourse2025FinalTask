@@ -7,10 +7,13 @@ from telebot import TeleBot
 import pandas as pd
 
 import smiles_info
+import search_substructures
+import exploration
 
 
 load_dotenv()
 TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
+
 
 bot = TeleBot(TG_BOT_TOKEN)
 
@@ -28,7 +31,7 @@ def greet(message):
     )
 
 
-@bot.message_handler(commands=["work"])
+@bot.message_handler(commands=["smile info"])
 def send_smiles_information(message):
     print(message)
     info = smiles_info.get_molecule_properties(message)
@@ -47,8 +50,30 @@ def handle_csv(message):
     try:
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
-        csv_data = io.StringIO(downloaded_file.decode('utf-8'))
-        df = pd.read_csv(csv_data)
+        try:
+            exploration.check_file_corections(downloaded_file)
+            bot.send_message(
+                message.chat.id,
+                Text_for_message["file_correct"]
+            )
+            not_valid_molecules_df = exploration.cheak_content_corections(downloaded_file)
+            if not_valid_molecules_df.empty:
+                bot.send_message(
+                    message.chat.id,
+                    Text_for_message["file_correct_content"]
+                )
+            else:
+                bot.send_message(
+                    message.chat.id,
+                    Text_for_message["no_parsing_error"]
+                )
+        except:
+            bot.send_message(
+            message.chat.id,
+            Text_for_message["content_error"]
+            )
+            raise ValueError("incorrect content in file")
+
     except:
         bot.send_message(
             message.chat.id,
@@ -78,26 +103,5 @@ def callback_handler(call):
         bot.answer_callback_query(call.id, Text_for_message["info_about_info_search"])
     elif call.data == "help_button_similar":
         bot.answer_callback_query(call.id, Text_for_message["info_about_similar_search"])
-
-bot.polling()
-def get_help(message):
-    print(message)
-    markup = TeleBot.types.ReplyKeyboardMarkup(row_width=2)
-    btn1 = TeleBot.types.KeyboardButton(data[6], callback_data="button1")
-    btn2 = TeleBot.types.KeyboardButton(data[7], callback_data="button2")
-    markup.add(btn1, btn2)
-    bot.send_message(
-        message.chat.id,
-        data[2],
-        reply_markup=markup
-    )
-# TODO Добавить более точное описание функционала
-
-@bot.callback_query_handler(func=lambda call: True)
-def callback_handler(call):
-    if call.data == "button1":
-        bot.answer_callback_query(call.id, data[3])
-    elif call.data == "button2":
-        bot.answer_callback_query(call.id, data[4])
 
 bot.polling()
