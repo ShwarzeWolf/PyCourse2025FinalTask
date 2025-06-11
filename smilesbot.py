@@ -6,6 +6,8 @@ from telebot import TeleBot
 
 import exploration
 from smiles_info import get_molecule_properties
+
+from utils.search_substructures import search_substructure
 from utils.similarity_search import find_similar_mols
 
 
@@ -128,6 +130,29 @@ def compare_with_other_mols(message):
         reply = "Similar molecules found:\n\n"
         for row in similar:
             reply += f"SMILES: {row['SMILES']}, Similarity: {row['Similarity']:.2f}\n"
+        bot.send_message(message.chat.id, reply)
+
+
+@bot.message_handler(commands=["get_substructures"])
+def get_substructures(message):
+    bot.send_message(
+        message.chat.id,
+        "Please, write a name of smiles that you want me to find substructures."
+    )
+    bot.register_next_step_handler(message, find_substructures)
+
+
+def find_substructures(message):
+    user_smiles = message.text
+    # TODO add the choice of library
+    molecules_with_found_substructures = search_substructure(user_smiles, "data/library.csv")
+
+    if not molecules_with_found_substructures:
+        bot.send_message(message.chat.id, "No molecules were found.")
+    else:
+        reply = "Molecules with substructures found:\n\n"
+        for row in molecules_with_found_substructures:
+            reply += f"{row}\n"
         bot.send_message(message.chat.id, reply)
 
 
