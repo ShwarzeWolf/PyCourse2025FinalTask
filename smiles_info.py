@@ -9,11 +9,15 @@ from rdkit.Chem import (
     Lipinski,
 )
 
-const MAX_molecular_wight = 500
-const MAX_h_donors = 5
-const MAX_h_acceptors = 10
+MAX_molecular_wight = 500
+MAX_h_donors = 5
+MAX_h_acceptors = 10
 
 def get_molecule_properties(smiles: str) -> dict:
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError("Invalid SMILES string")
     
     molecule_properties = {
         "smiles": smiles,
@@ -22,10 +26,6 @@ def get_molecule_properties(smiles: str) -> dict:
         "h_donors": Lipinski.NumHDonors(mol),
         "h_acceptors": Lipinski.NumHAcceptors(mol),
     }
-
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        raise ValueError("Invalid SMILES string")
 
     lipinski_rules = {
         "MolWt < 500": molecule_properties["molecular_weight"] < 500,
