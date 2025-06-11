@@ -4,9 +4,11 @@ import json
 from dotenv import load_dotenv
 from telebot import TeleBot
 
-import exploration
-from smiles_info import get_molecule_properties
-
+from utils.file_handling import (
+    check_file_corections,
+    cheak_content_corections,
+)
+from utils.smiles_info import get_molecule_properties
 from utils.search_substructures import search_substructure
 from utils.similarity_search import find_similar_mols
 
@@ -51,12 +53,12 @@ def handle_csv(message):
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         try:
-            exploration.check_file_corections(downloaded_file)
+            check_file_corections(downloaded_file)
             bot.send_message(
                 message.chat.id,
                 TEXT_FOR_MESSAGE["file_correct"]
             )
-            not_valid_molecules_df = exploration.cheak_content_corections(downloaded_file)
+            not_valid_molecules_df = cheak_content_corections(downloaded_file)
             if not_valid_molecules_df.empty:
                 bot.send_message(
                     message.chat.id,
