@@ -4,9 +4,13 @@ import json
 from dotenv import load_dotenv
 from telebot import TeleBot
 
-import exploration
-from smiles_info import get_molecule_properties
-
+from utils.file_handling import (
+    check_file_corections,
+    cheak_content_corections,
+)
+from utils.smiles_info import get_molecule_properties
+from utils.search_substructures import search_substructure
+from utils.similarity_search import find_similar_mols
 
 
 load_dotenv()
@@ -38,7 +42,7 @@ def send_smiles_information(message):
         TEXT_FOR_MESSAGE["send_info_smiles"]
     )
     bot.send_photo(
-        message.chat.id, 
+        message.chat.id,
         open(info["icon"], "rb")
     )
 
@@ -49,12 +53,12 @@ def handle_csv(message):
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         try:
-            exploration.check_file_corections(downloaded_file)
+            check_file_corections(downloaded_file)
             bot.send_message(
                 message.chat.id,
                 TEXT_FOR_MESSAGE["file_correct"]
             )
-            not_valid_molecules_df = exploration.cheak_content_corections(downloaded_file)
+            not_valid_molecules_df = cheak_content_corections(downloaded_file)
             if not_valid_molecules_df.empty:
                 bot.send_message(
                     message.chat.id,
@@ -106,6 +110,52 @@ def callback_handler(call):
         bot.answer_callback_query(call.id, TEXT_FOR_MESSAGE["info_about_info_search"])
     elif call.data == "help_button_similar":
         bot.answer_callback_query(call.id, TEXT_FOR_MESSAGE["info_about_similar_search"])
+
+
+@bot.message_handler(commands=["get_similar_smiles"])
+def get_similar_molecules(message):
+    bot.send_message(
+        message.chat.id,
+        "Please, write a name of smile that you want me to find similar one to"
+    )
+    bot.register_next_step_handler(message, compare_with_other_mols)
+
+
+def compare_with_other_mols(message):
+    user_smiles = message.text
+    # TODO add the choice of library
+    similar = find_similar_mols(user_smiles, "data/library.csv", threshold=0.7)
+
+    if not similar:
+        bot.send_message(message.chat.id, "No similar molecules were found.")
+    else:
+        reply = "Similar molecules found:\n\n"
+        for row in similar:
+            reply += f"SMILES: {row['SMILES']}, Similarity: {row['Similarity']:.2f}\n"
+        bot.send_message(message.chat.id, reply)
+
+
+@bot.message_handler(commands=["get_substructures"])
+def get_substructures(message):
+    bot.send_message(
+        message.chat.id,
+        "Please, write a name of smiles that you want me to find substructures."
+    )
+    bot.register_next_step_handler(message, find_substructures)
+
+
+def find_substructures(message):
+    user_smiles = message.text
+    # TODO add the choice of library
+    molecules_with_found_substructures = search_substructure(user_smiles, "data/library.csv")
+
+    if not molecules_with_found_substructures:
+        bot.send_message(message.chat.id, "No molecules were found.")
+    else:
+        reply = "Molecules with substructures found:\n\n"
+        for row in molecules_with_found_substructures:
+            reply += f"{row}\n"
+        bot.send_message(message.chat.id, reply)
 
 
 bot.polling()
