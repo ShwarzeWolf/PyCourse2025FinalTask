@@ -64,7 +64,7 @@ class Dir:
     def get_directory(self, input_file='input_smiles.csv', output_file='library.csv'):
         header = ["SMILES", "Molecular weight", "Number of rings",
                   "Number of hydrogen bond donors", "Number of hydrogen bond acceptors",
-                  "Соответствует ли критерию Липински"]
+                  "Lip_pass"]
 
         with open(input_file, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
@@ -89,7 +89,7 @@ class Dir:
                     h_donors <= 5 and
                     h_acceptors <= 10
                 )
-                writer.writerow([smi, mw, rings, h_donors, h_acceptors, "Да" if lipinski else "Нет"])
+                writer.writerow([smi, mw, rings, h_donors, h_acceptors, "Yes" if lipinski else "No"])
 
 
 if __name__ == '__main__':
